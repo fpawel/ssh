@@ -27,8 +27,8 @@ func (c Config) What() string {
 
 func ParseConnectionString(connStr string) (Config, error) {
 	// Добавляем префикс, если его нет
-	if !strings.HasPrefix(connStr, "ssh://") {
-		connStr = "ssh://" + connStr
+	if !strings.HasPrefix(connStr, "//") {
+		connStr = "//" + connStr
 	}
 
 	u, err := url.Parse(connStr)

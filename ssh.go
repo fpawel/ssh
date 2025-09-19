@@ -43,18 +43,18 @@ func (x Client) Execute(cmd string) (string, error) {
 	tm := time.Now()
 
 	if x.LogInput {
-		slog.Debug(fmt.Sprintf("👉 %s", cmd))
+		slog.Debug(fmt.Sprintf("👉 ssh: %s", cmd))
 	}
 	sshSession, err := x.Client.NewSession()
 	if err != nil {
-		return "", fmt.Errorf("SSH: open session: %w", err)
+		return "", fmt.Errorf("ssh: open session: %w", err)
 	}
 
 	defer func() {
 		if err := sshSession.Close(); err != nil && !errors.Is(err, io.EOF) {
-			slog.Error(fmt.Sprintf("⚠️ SSH: failed to close session after %s: %s", cmd, err))
+			slog.Error(fmt.Sprintf("⚠️ ssh: failed to close session after %s: %s", cmd, err))
 		} else {
-			slog.Debug(fmt.Sprintf("🍀 SSH: close session after %s", cmd))
+			slog.Debug(fmt.Sprintf("🍀 ssh: close session after %s", cmd))
 		}
 	}()
 
@@ -62,16 +62,16 @@ func (x Client) Execute(cmd string) (string, error) {
 	if err != nil {
 		var e *cryptossh.ExitError
 		if !errors.As(err, &e) {
-			return "", fmt.Errorf("SSH: execute remotely and get output: %w", err)
+			return "", fmt.Errorf("ssh: execute remotely and get output: %w", err)
 		}
-		slog.Warn("⚠️ " + err.Error())
+		slog.Warn("⚠️ ssh: " + err.Error())
 	}
 
 	if x.LogOutput {
 		if s := strings.TrimSpace(string(b)); s != "" {
-			slog.Debug("👈 " + strings.TrimSpace(string(b)) + " " + time.Since(tm).String())
+			slog.Debug("👈 ssh: " + strings.TrimSpace(string(b)) + " " + time.Since(tm).String())
 		} else {
-			slog.Debug("👈 " + time.Since(tm).String())
+			slog.Debug("👈 ssh: " + time.Since(tm).String())
 		}
 	}
 	return string(b), nil
