@@ -19,8 +19,9 @@ import (
 type (
 	Client struct {
 		*ssh.Client
-		LogInput  bool
-		LogOutput bool
+		LogInput   bool
+		LogOutput  bool
+		StdoutOnly bool
 	}
 	Config = sshConfig.Config
 )
@@ -35,8 +36,15 @@ func (x Client) WithNoLogInput() Client {
 	return x
 }
 
+func (x Client) WithStdoutOnly() Client {
+	x.StdoutOnly = true
+	return x
+}
+
 func (x Client) WithNoLog() Client {
-	return Client{Client: x.Client}
+	x.LogOutput = false
+	x.LogInput = false
+	return x
 }
 
 func (x Client) Execute(cmd string) (string, error) {
@@ -56,7 +64,13 @@ func (x Client) Execute(cmd string) (string, error) {
 		}
 	}()
 
-	b, err := sshSession.CombinedOutput(cmd)
+	var b []byte
+	if x.StdoutOnly {
+		b, err = sshSession.Output(cmd)
+	} else {
+		b, err = sshSession.CombinedOutput(cmd)
+	}
+
 	if err != nil {
 		var e *cryptossh.ExitError
 		if !errors.As(err, &e) {
