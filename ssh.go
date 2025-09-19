@@ -43,7 +43,7 @@ func (x Client) Execute(cmd string) (string, error) {
 	tm := time.Now()
 
 	if x.LogInput {
-		slog.Info(fmt.Sprintf("👉 %s", cmd))
+		slog.Debug(fmt.Sprintf("👉 %s", cmd))
 	}
 	sshSession, err := x.Client.NewSession()
 	if err != nil {
@@ -69,9 +69,9 @@ func (x Client) Execute(cmd string) (string, error) {
 
 	if x.LogOutput {
 		if s := strings.TrimSpace(string(b)); s != "" {
-			slog.Info("👈 " + strings.TrimSpace(string(b)) + " " + time.Since(tm).String())
+			slog.Debug("👈 " + strings.TrimSpace(string(b)) + " " + time.Since(tm).String())
 		} else {
-			slog.Info("👈 " + time.Since(tm).String())
+			slog.Debug("👈 " + time.Since(tm).String())
 		}
 	}
 	return string(b), nil
@@ -141,7 +141,7 @@ func (x Client) CreateSFTPFile(path string, b []byte) error {
 		if err = sftp.Close(); err != nil {
 			log.Error(fmt.Sprintf("❌ SFTP: failed to close  connection: %s", err))
 		} else {
-			log.Info("🍀 SFTP: close connection")
+			log.Debug("🍀 SFTP: close connection")
 		}
 	}()
 	file, err := sftp.Create(path)
@@ -152,7 +152,7 @@ func (x Client) CreateSFTPFile(path string, b []byte) error {
 		if err = file.Close(); err != nil {
 			log.Error(fmt.Sprintf("❌ SFTP: failed to close file: %s", err))
 		} else {
-			log.Info("🍀 SFTP: close file")
+			log.Debug("🍀 SFTP: close file")
 		}
 	}()
 
