@@ -53,8 +53,6 @@ func (x Client) Execute(cmd string) (string, error) {
 	defer func() {
 		if err := sshSession.Close(); err != nil && !errors.Is(err, io.EOF) {
 			slog.Error(fmt.Sprintf("⚠️ ssh: failed to close session after %s: %s", cmd, err))
-		} else {
-			slog.Debug(fmt.Sprintf("🍀 ssh: close session after %s", cmd))
 		}
 	}()
 
