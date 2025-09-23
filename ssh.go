@@ -136,7 +136,7 @@ func Connect(c Config) (_ Client, err error) {
 	if err != nil {
 		return SSH, eb.ExtendPrefix("dial").Wrap(err)
 	}
-	slog.Debug("Connected to ssh host: " + host)
+	slog.Debug("🍀 Connected to ssh host: " + host)
 	return SSH, nil
 }
 
