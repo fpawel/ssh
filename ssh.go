@@ -66,12 +66,21 @@ func (x Client) Execute(cmd string) (string, error) {
 
 	var b []byte
 	if x.StdoutOnly {
+		sshSession.Stderr = bytes.NewBuffer(nil)
 		b, err = sshSession.Output(cmd)
 	} else {
 		b, err = sshSession.CombinedOutput(cmd)
 	}
 
 	if err != nil {
+		if x.StdoutOnly {
+			bErr, errReadStdErr := io.ReadAll(sshSession.Stderr.(*bytes.Buffer))
+			if errReadStdErr != nil {
+				err = errors.Join(err, fmt.Errorf("read stderr: %w", errReadStdErr))
+			} else {
+				err = errors.New(string(bErr))
+			}
+		}
 		var e *cryptossh.ExitError
 		if !errors.As(err, &e) {
 			return "", fmt.Errorf("ssh: execute remotely and get output: %w", err)
@@ -126,6 +135,7 @@ func Connect(c Config) (_ Client, err error) {
 	if err != nil {
 		return SSH, eb.ExtendPrefix("dial").Wrap(err)
 	}
+	slog.Debug("Connected to ssh host: " + host)
 	return SSH, nil
 }
 
