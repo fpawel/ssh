@@ -74,18 +74,19 @@ func (x Client) Execute(cmd string) (string, error) {
 
 	if err != nil {
 		if x.StdoutOnly {
-			bErr, errReadStdErr := io.ReadAll(sshSession.Stderr.(*bytes.Buffer))
-			if errReadStdErr != nil {
-				err = errors.Join(err, fmt.Errorf("read stderr: %w", errReadStdErr))
+			bErr, errStderr := io.ReadAll(sshSession.Stderr.(*bytes.Buffer))
+			if errStderr != nil {
+				errStderr = fmt.Errorf("read stderr: %w", errStderr)
 			} else {
-				err = errors.New(string(bErr))
+				errStderr = errors.New(string(bErr))
 			}
+			err = errors.Join(err, errStderr)
 		}
 		var e *cryptossh.ExitError
 		if !errors.As(err, &e) {
 			return "", fmt.Errorf("ssh: execute remotely and get output: %w", err)
 		}
-		slog.Warn("⚠️ ssh: " + err.Error())
+		slog.Warn(fmt.Sprintf("⚠️ ssh: %s", err))
 	}
 
 	if x.LogOutput {
