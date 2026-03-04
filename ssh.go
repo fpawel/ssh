@@ -99,7 +99,20 @@ func (x Client) Execute(cmd string) (string, error) {
 	return string(b), nil
 }
 
-func Connect(c Config) (_ Client, err error) {
+func Connect(connStr string) (_ Client, err error) {
+	eb := errorx.WithFileLine().WithArgs("connection-string", connStr)
+	cfg, err := sshConfig.ParseConnectionString(connStr)
+	if err != nil {
+		return Client{}, eb.ExtendPrefix("parse ssh connection string").Wrap(err)
+	}
+	conn, err := ConnectWithConfig(cfg)
+	if err != nil {
+		return Client{}, eb.ExtendPrefix("connect ssh with config").Wrap(err)
+	}
+	return conn, nil
+}
+
+func ConnectWithConfig(c Config) (_ Client, err error) {
 	if c.Username == "" {
 		c.Username = "root"
 	}
@@ -112,7 +125,7 @@ func Connect(c Config) (_ Client, err error) {
 		LogOutput: true,
 		LogInput:  true,
 	}
-	var eb errorx.ErrorBuilder
+	eb := errorx.WithFileLine()
 
 	auth := []ssh.AuthMethod{
 		ssh.Password(c.Password),
@@ -123,9 +136,9 @@ func Connect(c Config) (_ Client, err error) {
 			return SSH, err
 		}
 		auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
-		eb = eb.WithArgs("keyFile", keyFile)
+		eb = eb.WithArgs("key-file", keyFile)
 	} else {
-		eb = eb.WithArgs("password", c.Password)
+		eb = eb.ExtendPrefix("with password")
 	}
 
 	SSH.Client, err = ssh.Dial("tcp", host, &ssh.ClientConfig{
